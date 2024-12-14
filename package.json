@@ -1,0 +1,27 @@
+{
+	"name": "font-finder",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"build": "tsc -b && vite build",
+		"dev": "vite",
+		"format": "hyperupcall-scripts-nodejs format",
+		"lint": "hyperupcall-scripts-nodejs lint",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"path-to-regexp": "^8.2.0",
+		"preact": "^10.25.0"
+	},
+	"devDependencies": {
+		"@hyperupcall/scripts-nodejs": "0.2.3",
+		"@preact/preset-vite": "^2.9.1",
+		"typescript": "~5.6.2",
+		"vite": "^6.0.1"
+	},
+	"markdownlint-cli2": {
+		"extends": "./node_modules/@hyperupcall/markdownlint-config/.markdownlint.json"
+	},
+	"prettier": "@hyperupcall/scripts-nodejs/config-prettier.js"
+}
