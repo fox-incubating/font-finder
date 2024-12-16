@@ -3,65 +3,140 @@ import fs from 'fs'
 import fsp from 'fs/promises'
 import p from 'path-to-regexp'
 
-const googleFonts = []
-
+const FontMetadata = JSON.parse(
+	fs.readFileSync('./google-fonts-repository/metadata/google-fonts-v2.json'),
+)
 {
-	for (const stat of fs.readdirSync('./fonts/fonts/google', {
-		withFileTypes: true,
-	})) {
-		if (!stat.isDirectory()) {
-			continue
+	// Compute some statistics.
+	const /** @type {string[]} */ allCategories = []
+	const /** @type {string[]} */ allSubsets = []
+	const /** @type {string[]} */ allStyles = []
+	const /** @type {string[]} */ allWeights = []
+	for (const fontId in FontMetadata) {
+		const category = FontMetadata[fontId].category
+		if (!allCategories.includes(category)) {
+			allCategories.push(category)
 		}
 
-		googleFonts.push(stat.name)
+		const subsets = FontMetadata[fontId].subsets
+		for (const subset of subsets) {
+			if (!allSubsets.includes(subset)) {
+				allSubsets.push(subset)
+			}
+		}
+
+		const styles = FontMetadata[fontId].styles
+		for (const style of styles) {
+			if (!allStyles.includes(style)) {
+				allStyles.push(style)
+			}
+		}
+
+		const weights = FontMetadata[fontId].weights
+		for (const weight of weights) {
+			if (!allWeights.includes(weight)) {
+				allWeights.push(weight)
+			}
+		}
+		allWeights.sort()
 	}
+	console.info('categories', allCategories)
+	// console.info('subsets', allSubsets)
+	console.info('styles', allStyles)
+	console.info('weights', allWeights)
 }
 
 const server = http.createServer(async (req, res) => {
-	console.log(req.url)
-
-	if (p.match('/api/fonts/list')(req.url) && req.method === 'GET') {
-		res.writeHead(200, { 'Content-Type': 'application/json' })
-		res.end(JSON.stringify(googleFonts))
-	} else if (p.match('/api/font/:font')(req.url) && req.method === 'POST') {
-		const match = p.match('/api/font/:font')(req.url)
-		const fontName = match.params.font
-		const json = await fsp.readFile(`./fonts/fonts/google/${fontName}/metadata.json`)
-		res.writeHead(200, { 'Content-Type': 'application/json' })
-		res.end(json)
-	} else if (p.match('/fonts/:fontId')(req.url) && req.method === 'GET') {
-		const match = p.match('/fonts/:fontId')(req.url)
-		const fontId = match.params.fontId
-		let stylesheet = ''
-		for (const stat of await fsp.readdir(`./fonts/fonts/google/${fontId}`, {
-			withFileTypes: true,
-		})) {
-			if (!stat.isFile()) {
-				continue
-			}
-
-			if (/^[0-9]{3}/.test(stat.name)) {
-				stylesheet += (
-					await fsp.readFile(`./fonts/fonts/google/${fontId}/${stat.name}`, 'utf-8')
-				).replaceAll('./files/', `/static/${fontId}/`)
-				stylesheet += '\n'
-			}
+	{
+		const fn = p.match('/api/font/get-all-metadata')
+		if (req.method === 'GET' && fn(req.url)) {
+			res.writeHead(200, { 'Content-Type': 'application/json' })
+			res.end(JSON.stringify(FontMetadata))
+			return
 		}
-		console.log(stylesheet)
-		res.setHeader('Content-Type', 'text/css')
-		res.write(stylesheet)
-		res.end()
-	} else if (p.match('/static/:fontId/:fontFile')(req.url) && req.method === 'GET') {
-		const match = p.match('/static/:fontId/:fontFile')(req.url)
-		const fontId = match.params.fontId
-		const fontFile = match.params.fontFile
-		const content = await fsp.readFile(`./fonts/fonts/google/${fontId}/files/${fontFile}`)
-		res.write(content)
-		res.end()
-	} else {
+	}
+
+	{
+		const fn = p.match('/api/font/get-metadata/:fontId')
+		if (req.method === 'POST' && fn(req.url)) {
+			const { fontId } = fn(req.url).params
+			const json = await fsp.readFile(
+				`./google-fonts-repository/fonts/google/${fontId}/metadata.json`,
+			)
+			res.writeHead(200, { 'Content-Type': 'application/json' })
+			res.end(json)
+			return
+		}
+	}
+
+	{
+		const fn = p.match('/api/font/get-metadata2/:fontId')
+		if (req.method === 'POST' && fn(req.url)) {
+			const { fontId } = fn(req.url).params
+			const metadata = FontMetadata[fontId]
+			if (metadata) {
+				res.writeHead(200, { 'Content-Type': 'application/json' })
+				res.end(JSON.stringify(metadata))
+			} else {
+				res.writeHead(404)
+				res.end()
+			}
+			return
+		}
+	}
+
+	{
+		const fn = p.match('/fonts/get-full-stylesheet/:fontId.css')
+		if (req.method === 'GET' && fn(req.url)) {
+			const { fontId } = fn(req.url).params
+			let stylesheet = ''
+			for (const stat of await fsp.readdir(
+				`./google-fonts-repository/fonts/google/${fontId}`,
+				{
+					withFileTypes: true,
+				},
+			)) {
+				if (!stat.isFile()) {
+					continue
+				}
+
+				if (/^[0-9]{3}/.test(stat.name)) {
+					stylesheet += (
+						await fsp.readFile(
+							`./google-fonts-repository/fonts/google/${fontId}/${stat.name}`,
+							'utf-8',
+						)
+					).replaceAll('./files/', `/static/${fontId}/`)
+					stylesheet += '\n'
+				}
+			}
+			res.setHeader('Content-Type', 'text/css')
+			res.write(stylesheet)
+			res.end()
+			return
+		}
+	}
+
+	{
+		const fn = p.match('/static/:fontId/:fontFile')
+		if (req.method === 'GET' && fn(req.url)) {
+			const match = p.match('/static/:fontId/:fontFile')(req.url)
+			const fontId = match.params.fontId
+			const fontFile = match.params.fontFile
+			const content = await fsp.readFile(
+				`./google-fonts-repository/fonts/google/${fontId}/files/${fontFile}`,
+			)
+			res.write(content)
+			res.end()
+			return
+		}
+	}
+
+	{
 		console.log(`No match found: "${req.method}: ${req.url}"`)
 		res.writeHead(404)
 		res.end()
+		return
 	}
 })
 

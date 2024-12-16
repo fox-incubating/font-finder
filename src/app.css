@@ -3,6 +3,15 @@
 	padding: 2rem;
 }
 
+.search-settings {
+	z-index: 10;
+	min-width: 800px;
+
+	label {
+		margin-inline-end: 12px;
+	}
+}
+
 .overlay {
 	position: fixed;
 	bottom: 0;

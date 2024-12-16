@@ -28,28 +28,412 @@ type VariableEntry = {
 }
 
 export function App() {
-	const [allFontsList, setAllFontsList] = useState<string[]>([])
-
+	const [allFontIds, setAllFontIds] = useState<string[]>([])
+	const [allFontMetadata, setAllFontMetadata] = useState<any>({})
+	const [searchSettings, setSearchSettings] = useState({
+		categories: ['sans-serif'],
+		weights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+		string: '',
+	})
 	const [h1Font, setH1Font] = useState(48)
 	const [pFont, setPFont] = useState(18)
-	const [searchStr, setSearchStr] = useState('')
 
-	const itemsInPage = 20
+	const itemsInPage = 10
 	const [currentPage, setCurrentPage] = useState(0)
-	const [totalPage, setTotalPage] = useState(1)
+	const filteredFontIds = allFontIds.filter((fontId) => {
+		let shouldShow = true
+
+		const metadata = allFontMetadata[fontId]
+		if (!metadata.family.toLowerCase().includes(searchSettings.string)) {
+			shouldShow = false
+		}
+
+		if (!searchSettings.categories.includes(metadata.category)) {
+			shouldShow = false
+		}
+
+		for (const weights of searchSettings.weights) {
+			if (!metadata.weights.includes(weights)) {
+				shouldShow = false
+			}
+		}
+
+		return shouldShow
+	})
+
+	console.log(filteredFontIds.length)
 
 	useEffect(() => {
-		fetch('/api/fonts/list', { method: 'GET' })
+		fetch('/api/font/get-all-metadata', { method: 'GET' })
 			.then((res) => {
 				return res.json()
 			})
 			.then((json: any) => {
-				setAllFontsList(json)
+				setAllFontIds(Object.keys(json))
+				setAllFontMetadata(json)
 			})
 	}, [])
+	const [searchSettingsDialog, showSearchSettingsDialog] = useState(false)
 
 	return (
 		<>
+			<dialog class='search-settings' open={searchSettingsDialog}>
+				<h2>Search Settings</h2>
+				<button
+					onClick={() => {
+						showSearchSettingsDialog(false)
+					}}
+				>
+					Close
+				</button>
+				<div>
+					<h3>Categories</h3>
+					<label>
+						Sans-Serif
+						<input
+							type='checkbox'
+							checked={searchSettings.categories.includes('sans-serif')}
+							onChange={(ev) => {
+								const str = 'sans-serif'
+								const categories = searchSettings.categories
+								if (ev.target.checked) {
+									if (!categories.includes(str)) {
+										categories.push(str)
+									}
+								} else {
+									if (categories.includes(str)) {
+										categories.splice(categories.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									categories,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						Serif
+						<input
+							type='checkbox'
+							checked={searchSettings.categories.includes('serif')}
+							onChange={(ev) => {
+								const str = 'serif'
+								const categories = searchSettings.categories
+								if (ev.target.checked) {
+									if (!categories.includes(str)) {
+										categories.push(str)
+									}
+								} else {
+									if (categories.includes(str)) {
+										categories.splice(categories.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									categories,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						Display
+						<input
+							type='checkbox'
+							checked={searchSettings.categories.includes('display')}
+							onChange={(ev) => {
+								const str = 'display'
+								const categories = searchSettings.categories
+								if (ev.target.checked) {
+									if (!categories.includes(str)) {
+										categories.push(str)
+									}
+								} else {
+									if (categories.includes(str)) {
+										categories.splice(categories.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									categories,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						Handwriting
+						<input
+							type='checkbox'
+							checked={searchSettings.categories.includes('handwriting')}
+							onChange={(ev) => {
+								const str = 'handwriting'
+								const categories = searchSettings.categories
+								if (ev.target.checked) {
+									if (!categories.includes(str)) {
+										categories.push(str)
+									}
+								} else {
+									if (categories.includes(str)) {
+										categories.splice(categories.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									categories,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						Monospace
+						<input
+							type='checkbox'
+							checked={searchSettings.categories.includes('monospace')}
+							onChange={(ev) => {
+								const str = 'monospace'
+								const categories = searchSettings.categories
+								if (ev.target.checked) {
+									if (!categories.includes(str)) {
+										categories.push(str)
+									}
+								} else {
+									if (categories.includes(str)) {
+										categories.splice(categories.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									categories,
+								})
+							}}
+						/>
+					</label>
+				</div>
+				<div>
+					<h3>Weights</h3>
+					<p>Select the weights that must be included.</p>
+					<label>
+						100
+						<input
+							type='checkbox'
+							checked={searchSettings.weights.includes(100)}
+							onChange={(ev) => {
+								const str = 100
+								const weights = searchSettings.weights
+								if (ev.target.checked) {
+									if (!weights.includes(str)) {
+										weights.push(str)
+									}
+								} else {
+									if (weights.includes(str)) {
+										weights.splice(weights.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									weights,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						200
+						<input
+							type='checkbox'
+							checked={searchSettings.weights.includes(200)}
+							onChange={(ev) => {
+								const str = 200
+								const weights = searchSettings.weights
+								if (ev.target.checked) {
+									if (!weights.includes(str)) {
+										weights.push(str)
+									}
+								} else {
+									if (weights.includes(str)) {
+										weights.splice(weights.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									weights,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						300
+						<input
+							type='checkbox'
+							checked={searchSettings.weights.includes(300)}
+							onChange={(ev) => {
+								const str = 300
+								const weights = searchSettings.weights
+								if (ev.target.checked) {
+									if (!weights.includes(str)) {
+										weights.push(str)
+									}
+								} else {
+									if (weights.includes(str)) {
+										weights.splice(weights.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									weights,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						400
+						<input
+							type='checkbox'
+							checked={searchSettings.weights.includes(400)}
+							onChange={(ev) => {
+								const str = 400
+								const weights = searchSettings.weights
+								if (ev.target.checked) {
+									if (!weights.includes(str)) {
+										weights.push(str)
+									}
+								} else {
+									if (weights.includes(str)) {
+										weights.splice(weights.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									weights,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						500
+						<input
+							type='checkbox'
+							checked={searchSettings.weights.includes(500)}
+							onChange={(ev) => {
+								const str = 500
+								const weights = searchSettings.weights
+								if (ev.target.checked) {
+									if (!weights.includes(str)) {
+										weights.push(str)
+									}
+								} else {
+									if (weights.includes(str)) {
+										weights.splice(weights.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									weights,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						600
+						<input
+							type='checkbox'
+							checked={searchSettings.weights.includes(600)}
+							onChange={(ev) => {
+								const str = 600
+								const weights = searchSettings.weights
+								if (ev.target.checked) {
+									if (!weights.includes(str)) {
+										weights.push(str)
+									}
+								} else {
+									if (weights.includes(str)) {
+										weights.splice(weights.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									weights,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						700
+						<input
+							type='checkbox'
+							checked={searchSettings.weights.includes(700)}
+							onChange={(ev) => {
+								const str = 700
+								const weights = searchSettings.weights
+								if (ev.target.checked) {
+									if (!weights.includes(str)) {
+										weights.push(str)
+									}
+								} else {
+									if (weights.includes(str)) {
+										weights.splice(weights.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									weights,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						800
+						<input
+							type='checkbox'
+							checked={searchSettings.weights.includes(800)}
+							onChange={(ev) => {
+								const str = 800
+								const weights = searchSettings.weights
+								if (ev.target.checked) {
+									if (!weights.includes(str)) {
+										weights.push(str)
+									}
+								} else {
+									if (weights.includes(str)) {
+										weights.splice(weights.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									weights,
+								})
+							}}
+						/>
+					</label>
+					<label>
+						900
+						<input
+							type='checkbox'
+							checked={searchSettings.weights.includes(900)}
+							onChange={(ev) => {
+								const str = 900
+								const weights = searchSettings.weights
+								if (ev.target.checked) {
+									if (!weights.includes(str)) {
+										weights.push(str)
+									}
+								} else {
+									if (weights.includes(str)) {
+										weights.splice(weights.indexOf(str), 1)
+									}
+								}
+								setSearchSettings({
+									...searchSettings,
+									weights,
+								})
+							}}
+						/>
+					</label>
+				</div>
+				<div>
+					<h3>Debug</h3>
+					<pre>{JSON.stringify(searchSettings, null, '\t')}</pre>
+				</div>
+			</dialog>
 			<div class='overlay'>
 				<p>
 					<b>Font Settings</b>
@@ -82,29 +466,51 @@ export function App() {
 						<input
 							type='text'
 							onInput={(ev) => {
-								setSearchStr(ev.target.value)
-								setFonts(
-									allFontsList.filter((font) =>
-										font.toLowerCase().includes(searchStr.toLowerCase()),
-									),
-								)
+								setSearchSettings({
+									...searchSettings,
+									string: ev.target.value,
+								})
 							}}
 						/>
 					</label>
 					<div class='paging'>
 						<span>
-							Page {currentPage + 1} of {Math.ceil(allFontsList.length / itemsInPage)}
+							Page {currentPage + 1} of {Math.ceil(filteredFontIds.length / itemsInPage)}
 						</span>
-						<button onClick={() => setCurrentPage(currentPage - 1)}>Backward</button>
-						<button onClick={() => setCurrentPage(currentPage + 1)}>Forward</button>
+						<button
+							onClick={() => {
+								if (currentPage > 0) {
+									setCurrentPage(currentPage - 1)
+								}
+							}}
+						>
+							Backward
+						</button>
+						<button
+							onClick={() => {
+								if (currentPage < Math.ceil(filteredFontIds.length / itemsInPage - 1)) {
+									setCurrentPage(currentPage + 1)
+								}
+							}}
+						>
+							Forward
+						</button>
 					</div>
-					<input type='checkbox' />
+					<button
+						onClick={() => {
+							showSearchSettingsDialog(true)
+						}}
+					>
+						Search Settings
+					</button>
 				</div>
-				{allFontsList.length > 0 ? (
+				{filteredFontIds.length > 0 ? (
 					<div class='font-list'>
-						{allFontsList.slice(currentPage * itemsInPage, itemsInPage).map((fontId) => (
-							<FontEntry id={fontId} />
-						))}
+						{filteredFontIds
+							.slice(currentPage * itemsInPage, currentPage * itemsInPage + itemsInPage)
+							.map((fontId) => (
+								<FontEntry key={fontId} id={fontId} />
+							))}
 					</div>
 				) : (
 					<p>Loading...</p>
@@ -144,12 +550,12 @@ function FontEntry({ id }: { id: string }) {
 		const link = document.createElement('link')
 		link.type = 'text/css'
 		link.rel = 'stylesheet'
-		link.href = `/fonts/${id}`
+		link.href = `/fonts/get-full-stylesheet/${id}.css`
 		document.head.appendChild(link)
 	}
 
 	useEffect(() => {
-		fetch(`/api/font/${id}`, { method: 'POST' })
+		fetch(`/api/font/get-metadata/${id}`, { method: 'POST' })
 			.then((res) => {
 				return res.json()
 			})
