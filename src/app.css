@@ -1,6 +1,77 @@
 #app {
 	max-width: 720px;
+}
+
+main.text {
 	padding: 2rem;
+}
+
+dialog.dialog-font-search {
+	z-index: 20;
+	width: calc(100% - 30px);
+	height: calc(100% - 30px);
+	top: 15px;
+	padding: 0;
+
+	& .controls {
+		padding: 3px;
+		background-color: beige;
+		border-bottom: 1px solid dimgray;
+
+		& .topmost {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+		}
+		& .topmost .search {
+			display: flex;
+			align-items: center;
+			gap: 3px;
+		}
+		& .topmost .paging-info {
+			margin-inline-start: 5px;
+		}
+
+		& .categories {
+			display: flex;
+			align-items: center;
+		}
+		& .categories > b {
+			margin-inline-end: 10px;
+		}
+		& .categories > label > input {
+			margin-inline-start: 10px;
+		}
+
+		& .weights {
+			display: flex;
+			align-items: center;
+		}
+		& .weights > b {
+			margin-inline-end: 31px;
+		}
+		& .weights > label > input {
+			margin-inline-start: 10px;
+		}
+	}
+
+	& .font-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+
+		& > .font-entry {
+			border: 1px solid dimgray;
+			height: 80px;
+			display: flex;
+			align-items: center;
+			font-size: 48px;
+		}
+	}
+}
+
+dialog::backdrop {
+	background-color: rgba(0, 0, 0, 0.5);
 }
 
 .search-settings {
@@ -21,7 +92,7 @@
 	border: 1px solid black;
 	border-radius: 3px;
 	background-color: aliceblue;
-	width: 240px;
+	width: 300px;
 
 	& > p {
 		font-size: 16px;
